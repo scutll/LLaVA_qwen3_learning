@@ -150,7 +150,7 @@ class LoRADataset(Dataset):
 
     def __getitem__(self, idx):
         item = self.dataset[idx]
-        image = item["image"][0]
+        image = item["images"][0]
         if image.mode != "RGB":
             image = image.convert("RGB")
 
