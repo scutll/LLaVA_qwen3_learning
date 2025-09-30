@@ -16,3 +16,5 @@ output_lora
 
 # Virtual environments
 .venv
+data_view/llava-cc3m-pretrain-595K_0.parquet
+data_view/train-00000-of-00032.parquet
