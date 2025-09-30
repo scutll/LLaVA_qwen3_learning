@@ -79,11 +79,11 @@
 
   - 然后我们来看计算，我们一次性把logits全计算出来，**每个logits[t]代表着将input_ids[0: t]经过embedding层并输入qwen得到的对第t+1个token的预测结果**，而这个结果可以跟labels[t]比对进行loss的计算。在output内容之前的是问题和图片的内容，我们可以**省略掉不加入loss的计算**(attention_mask)。而**每次计算logits我们都是用正确答案output的token序列，因此每个logit的计算并不影响另一个**，所以我们可以并行地计算所以logits，然后依次与labels进行loss计算(如图)。
 
-  ![1759131550878](images\whiteboard_exported_image.png)
+  ![1759131550878](images/whiteboard_exported_image.png)
 
   - 如果不并行看的话，就相当于从input_ids[0: t] (t=len_input_and_image)开始，计算一个logits[t]，然后跟label[t]比对计算loss，然后又放入input_ids[0:t+1]计算logits[t+1]，跟labels[t+1]比对...直到计算完input_ids的整条序列，而这一个个序列的计算是互不干扰的。**本质上还是给一个序列然后预测下一个词，但这里妙就妙在可以并行计算一次性算出来所有logits**
 
-![img](images\whiteboard_exported_image.png)
+![img](images/whiteboard_exported_image.png)
 
 ------
 
