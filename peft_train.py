@@ -20,7 +20,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # 预训练的权重经过单轮对话训练(stage1)后得到的权重
 # stage1 训练图文对齐+基本文字生成能力
 # stage2 调优多轮对话生成能力
-stage1_model_path = os.path.join(base_path, "output", "pretrained_best_model")
+stage1_model_path = os.path.join(base_path, "stage1_patch16_loss3p9", "pretrained_best_model")
 
 if __name__ == "__main__":
 
