@@ -1,5 +1,5 @@
 import os
-from transformers import AutoTokenizer, AutoProcessor, AutoModel
+from transformers import AutoTokenizer, AutoProcessor, AutoModel, AutoModelForCausalLM
 from datasets import load_dataset, DownloadConfig
 
 
@@ -27,7 +27,7 @@ print(tokenizer)
 del tokenizer 
 
 print("下载 Qwen 模型 ...")
-qwen_model = AutoModel.from_pretrained(qwen_name, cache_dir=qwen_path, trust_remote_code=True)
+qwen_model = AutoModelForCausalLM.from_pretrained(qwen_name, cache_dir=qwen_path, trust_remote_code=True)
 print(qwen_model.config)
 del qwen_model
 

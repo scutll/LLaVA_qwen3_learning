@@ -2,13 +2,15 @@ import os
 import torch
 from transformers import Trainer, TrainingArguments, AutoTokenizer
 
+
 from data.dataset import VLMDataset, VLMDataCollator
 from model import VLM, VLMConfig
+from path_config import qwen_config_path, clip16_config_path
 
 base_path = os.path.dirname(os.path.abspath(__file__))
 # qwen和clip的权重路径, 训练结果的输出路径
-qwen_path = os.path.join(base_path, "Qwen3-0.6B")
-clip_path = os.path.join(base_path, "clip-vit-base-patch16")
+qwen_path = os.path.join(base_path, qwen_config_path)
+clip_path = os.path.join(base_path, clip16_config_path)
 output_dir = os.path.join(base_path, "output")
 
 if __name__ == "__main__":
@@ -21,7 +23,7 @@ if __name__ == "__main__":
     # model.qwen.gradient_checkpointing_enable(use_cache=False)
     # model.clip.gradient_checkpointing_enable(use_cache=False)
 
-    print("数据集构建...")
+    print("模型和分词器加载完成，正在进行数据集构建...")
     train_dataset = VLMDataset(qwen_path, clip_path, config, split_type="train")
     eval_dataset = VLMDataset(qwen_path, clip_path, config, split_type="val")
 
