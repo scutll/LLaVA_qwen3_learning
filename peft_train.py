@@ -5,15 +5,15 @@ from safetensors.torch import load_file as load_safetensors
 from transformers import AutoTokenizer
 from peft import get_peft_model, LoraConfig, TaskType
 import os
-
+from path_config import qwen_config_path, clip16_config_path
 from model import VLM, VLMConfig
 
 # 使用更多显存的时候减少发生OOM(out of memory)的概率
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 base_path = os.path.dirname(os.path.abspath(__file__))
-qwen_path = os.path.join(base_path, "Qwen3-0.6B")
-clip_path = os.path.join(base_path, "clip-vit-base-patch16")
+qwen_path = os.path.join(base_path, qwen_config_path)
+clip_path = os.path.join(base_path, clip16_config_path)
 output_dir = os.path.join(base_path, "output_lora")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
