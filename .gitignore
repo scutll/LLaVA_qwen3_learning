@@ -18,3 +18,8 @@ output_lora
 .venv
 data_view/llava-cc3m-pretrain-595K_0.parquet
 data_view/train-00000-of-00032.parquet
+data/trl-lib___llava-instruct-mix
+data/tejasvaidhya___llava-cc3m-pretrain-595_k
+Qwen3-0.6B
+clip-vit-base-patch16
+clip-vit-base-patch32

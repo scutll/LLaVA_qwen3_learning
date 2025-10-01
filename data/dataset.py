@@ -7,6 +7,11 @@ import torch
 import io
 import os
 
+os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
+os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
+
+
+
 base_path = os.path.dirname(os.path.abspath(__file__))
 # Tokenizer
 qwen_path = os.path.join(base_path, "..", "Qwen3-0.6B")
