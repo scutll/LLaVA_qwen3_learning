@@ -1,7 +1,6 @@
 # LLaVM: Large Language and Vision Assistant多模态多轮对话模型
-   学习参考项目:https://github.com/Guldfisk5682/TinyLLaVA-Qwen3
 
-​	本项目为对LLaVM的大致解构和分析，包含数据集、模型、训练、微调等各方面经验，旨在掌握当前多模态大模型微调方法以及探索扩展到中文语言模型的开发。
+​	本项目为对LLaVM的大致解构和分析，包含数据集、模型、训练、微调等各方面经验，旨在掌握当前多模态大模型微调方                                                                                                 法以及探索扩展到中文语言模型的开发。
 
 ​	项目使用HuggingFace的数据集、模型，并使用LoRA方法进行微调。
 
@@ -79,11 +78,11 @@
 
   - 然后我们来看计算，我们一次性把logits全计算出来，**每个logits[t]代表着将input_ids[0: t]经过embedding层并输入qwen得到的对第t+1个token的预测结果**，而这个结果可以跟labels[t]比对进行loss的计算。在output内容之前的是问题和图片的内容，我们可以**省略掉不加入loss的计算**(attention_mask)。而**每次计算logits我们都是用正确答案output的token序列，因此每个logit的计算并不影响另一个**，所以我们可以并行地计算所以logits，然后依次与labels进行loss计算(如图)。
 
-  ![1759131550878](images/whiteboard_exported_image.png)
+  ![1759131550878](C:\Users\mxl_scut\AppData\Roaming\Typora\typora-user-images\1759131550878.png)
 
   - 如果不并行看的话，就相当于从input_ids[0: t] (t=len_input_and_image)开始，计算一个logits[t]，然后跟label[t]比对计算loss，然后又放入input_ids[0:t+1]计算logits[t+1]，跟labels[t+1]比对...直到计算完input_ids的整条序列，而这一个个序列的计算是互不干扰的。**本质上还是给一个序列然后预测下一个词，但这里妙就妙在可以并行计算一次性算出来所有logits**
 
-![img](images/whiteboard_exported_image.png)
+![img](file:///C:/Users/mxl_scut/Downloads/whiteboard_exported_image.png)
 
 ------
 
@@ -131,7 +130,7 @@ formatted_prompt = tokenizer.apply_chat_template(
 
 #### Decoder 的文本序列生成
 
-- 作为一个Decoder-only模型，Qwen在推断模式时接受embed_text**(此处省略input_ids和pixel_values的同步信息和合并过程)**作为输入，**生成对下一个token的猜测logits => **(batch_size=1, vocab_size)
+- 作为一个Decoder-only模型，Qwen在推断模式时接受embed_text**(此处省略input_ids和pixel_values的同步信息和合并过程) **作为输入，生成对下一个token的猜测logits => ** (batch_size=1, vocab_size)
 
   - 在这里，我们挑选概率最大的token作为输出，也就是vocab_size维度中的最大值
   - **思考：如果我们不选用最大可能性的token而是在前k个可能的token中随机选择，模型输出序列的多样性会不会更加丰富**
@@ -229,11 +228,14 @@ LoRADataset两个数据集，还有一个VLMDataCollator
 - 通过**把ΔW分解成AB两个低秩矩阵来大大减少参数量**
 
 - 为了缓解AB更新太小可能学不到很多东西，我们使用缩放系数α，这样ΔW就等于 α/rank(AB)，一般来说，rank取8，也就是AB的形状分别是hiddenx8, 8xhidden，然后α取16
+
 - 说了这么多，**实际上就是在要训练的参数层(冻结)的基础上每个参数加一个微调的偏移量，而这些偏移量可以通过分解成更低秩的几个矩阵来减少参数量**，在此基础上，这个偏移线性层的训练跟一般线性层的训练都是大差不差的，既可以添加bias偏置，也可以进行dropout操作，也可以进行weight_decay，也要设置学习率。。。那我们再来看下LoRA独有的一些重要配置参数：
-  - **r：******要分解到的秩，比如AB分别为 hidden x r, r x hidden
-  - **lora_alpha：**LoRA缩放系数
-  - **target_modules：**要插入LoRA adapter进行微调的层，比如Q(q_proj)、K(k_proj)、V(v_proj)、Output(o_proj)
-  - **task_type：**不同类型模型使用的任务类型，在我们这个Decoder-only自回归模型中，我们用的是**CAUSAL_LM**，即每次生成一个token
+
+  - **r：** 要分解到的秩，比如AB分别为 hidden x r, r x hidden
+  - **lora_alpha：** LoRA缩放系数
+  - **target_modules：** 要插入LoRA adapter进行微调的层，比如Q(q_proj)、K(k_proj)、V(v_proj)、Output(o_proj)
+  - **task_type：** 不同类型模型使用的任务类型，在我们这个Decoder-only自回归模型中，我们用的是**CAUSAL_LM**，即每次生成一个token
+
 - LoRA的配置方式：peft库提供了十分简单的配置LoRA的方式，只需配置LoRAConfig，然后用get_peft_model为satge1训练过的qwen模型注入LoRA adapter层即可进行训练
 
 ------
@@ -245,14 +247,22 @@ LoRADataset两个数据集，还有一个VLMDataCollator
 ​	跟基础Inference的内容就不作过多介绍了，我们来看一下不同的一些地方：
 
 - 首先是模型的加载，依然使用peft库的**get_peft_model**将LoRA adapter层嵌入模型，然后再使用**load_state_dict**来将权重加载到模型和adapter层中，通常我们还有进行一步**merge_and_unload来将LoRA的低秩矩阵合并到base权重中，然后卸载LoRA的所有微调层**，这样就可以大大加速推理速度和减少内存占用（缺点自然是改变了权重而且以后想要重新微调需要重新添加adapter层）
-
 - 在加载模型后，我们才进行词化器的加载，这样是为了缓解模型加载时的内存负担。。
 - 然后很重要的一步就是创建一个**conversation**，这表示的是模型跟用户多轮的对话记录，一开始只有一个role为<system>的记录(应该是作为system prompt来用)，**后面每次提问和产生回答都会将这些文字按格式添加进conversation中**，以此来维护一个完整多轮对话的历史。
-
 - 后面图片和文字的处理过程就和基本的推断程序没什么差别了，要注意的就是在**formatted_prompt进行格式化的时候传入的是conversation**，而不只是当前的一个问题，**即每次对话都要将前面的对话历史全部告诉大模型，这样才能使得模型拥有“记忆”**。
 - 最后生成回答，也是照样把回答插入conversation，这样一轮对话就完成了，一直循环就实现了多轮对话的功能。
 
 ------
 
-## 扩展环节：实现中文多轮对话模型LLaVA-CN
+## 训练实践
 
+​		说理论说很多了，但是实际训练起来也是不轻松，首先就是autodl连接huggingface难，这里挂代理就好多了。具体的模型和数据集下载可以看**load_hf.py**这个文件一次性把需要的都下载好了。
+
+​		然后就是一个很棘手的问题，总是报ValueError错，说我用了错误的Config，但看Qwen3-0.6B里面的config.json是没问题的，后来找到原因是系统要直接在Qwen3-0.6B文件夹里面找config.json和模型等文件。。**因此要将qwen_path设置成config.json的所在文件夹才能运行，用model.py测试一下就ok**
+
+### 训练成效
+
+- 总训练loss从5.6降到4.6然后到3.9，但实际上后面差不多一万个it都是维持在3.8到3.9附近，已经是比较拟合了。
+- 在inference.py中使用能感受到，**CLIP能够一定程度上理解图片内容，文字对齐能力也基本可以了**。但问题是无论用户的文本是什么(即使不是提问)，模型的生成也是对图片的一个描述，而且同一个问题或者差不多的问题带来的答案是很相近的，甚至词语都没什么差别。。个人觉得是因为数据集中input的内容都是清一色的对图片提问的，并且**图片通常占据高达49个信息位，而文本input一般也没有这么长，导致在训练中通常是文本信息作为主导因此在推断中文本信息对生成token的影响力就过大了**
+- 微调环节，训练也不快，三分之一的数据集大小但训练时间跟stage1差不多，loss从一开始的1.6作用到0.9，并且**一半epoches之后的提升也是基本没有了**。
+- 然后是效果，images文件夹中有两张动漫截图和一张相机实拍图，测试发现**模型对真实世界场景的图片理解能力要明显优于动漫截图**，许多细节能够理解的更准确。原因可能是数据集里面比较少动漫类型的图片，但总的来说，CLIP对一些细节也是能够看到的，图文对齐能力也是有的。
