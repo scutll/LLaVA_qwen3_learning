@@ -69,6 +69,11 @@ if __name__ == "__main__":
     # 对qwen模型进行LoRA adapter层的插入
     # 使用这个函数会自动进行权重参数的冻结
     model.qwen = get_peft_model(model.qwen, lora_config)
+    
+    #print("检查base权重冻结：")
+    #for name, p in model.qwen.named_parameters():
+    #    print(name, p.requires_grad)
+
     params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"模型可训练参数量（应用lora后）为：{params/1e6:.2f}M")
 
@@ -95,7 +100,7 @@ if __name__ == "__main__":
         num_train_epochs=1,
         weight_decay=0.05,
         warmup_ratio=0.05,
-        optim="adamw_8bit",  # adamw_8bit备用
+        optim="adamw_torch",  # adamw_8bit备用
         lr_scheduler_type="cosine",
         bf16=True,
         fp16=False,

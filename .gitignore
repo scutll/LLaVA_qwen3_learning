@@ -27,3 +27,4 @@ Qwen3-0.6B
 clip-vit-base-patch16
 clip-vit-base-patch32
 stage1_patch16_loss3p9
+stage2_patch16_loss0p9/

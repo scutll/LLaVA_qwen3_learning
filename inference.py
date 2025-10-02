@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from PIL import Image
 from transformers import AutoTokenizer, AutoProcessor
 from safetensors.torch import load_file as load_safetensors
-
+from path_config import qwen_config_path, clip16_config_path
 
 from model import VLM, VLMConfig
 
@@ -15,11 +15,11 @@ def generate_response():
 
     base_path = os.path.dirname(os.path.abspath(__file__))
     # 模型目录
-    state_path = os.path.join(base_path, "output", "pretrained_best_model") 
+    state_path = os.path.join(base_path, "stage1_patch16_loss3p9", "pretrained_best_model") 
     # state_path = os.path.join(base_path, "output", "checkpoint-400") 
     # qwen和clip模型路径，用于加载预训练模型的tokenizer
-    qwen_path = os.path.join(base_path, "Qwen3-0.6B")
-    clip_path = os.path.join(base_path, "clip-vit-base-patch16") 
+    qwen_path = os.path.join(base_path, qwen_config_path)
+    clip_path = os.path.join(base_path, clip16_config_path) 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"使用设备: {device}")
 

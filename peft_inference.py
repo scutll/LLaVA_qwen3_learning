@@ -4,15 +4,16 @@ from PIL import Image
 from transformers import AutoTokenizer, AutoProcessor
 from safetensors.torch import load_file as load_safetensors
 from peft import get_peft_model, LoraConfig, TaskType
+from path_config import qwen_config_path, clip16_config_path
 
 from model import VLM, VLMConfig
 
 def generate_response():
     
     base_path = os.path.dirname(os.path.abspath(__file__))
-    checkpoint_path = os.path.join(base_path, "output_lora", "checkpoint-6400") 
-    qwen_path = os.path.join(base_path, "Qwen3-0.6B")
-    clip_path = os.path.join(base_path, "clip-vit-base-patch16") 
+    checkpoint_path = os.path.join(base_path, "stage2_patch16_loss0p9", "lora_best_model") 
+    qwen_path = os.path.join(base_path, qwen_config_path)
+    clip_path = os.path.join(base_path, clip16_config_path) 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"使用设备: {device}")
 
@@ -33,6 +34,7 @@ def generate_response():
         task_type=TaskType.CAUSAL_LM,
     )
     # 核心的是这个qwen
+    # 这里还只是加载LoRA层
     model.qwen = get_peft_model(model.qwen, lora_config)
 
     print(f"从 {checkpoint_path} 的 model.safetensors 加载完整权重...")
